@@ -1,5 +1,7 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class DebugPage extends StatefulWidget {
   const DebugPage({super.key});
@@ -9,7 +11,7 @@ class DebugPage extends StatefulWidget {
 }
 
 class _DebugPageState extends State<DebugPage> {
-  String? _token;
+  String _tokenMessage = 'Memeriksa FCM token...';
 
   @override
   void initState() {
@@ -18,25 +20,29 @@ class _DebugPageState extends State<DebugPage> {
   }
 
   Future<void> _loadToken() async {
-    final token = await FirebaseMessaging.instance.getToken();
-
-    if (!mounted) return;
-
-    setState(() {
-      _token = token;
-    });
-  }
-
-  String _displayToken(String? token) {
-    if (token == null) {
-      return 'Token not available';
+    if (kIsWeb) {
+      setState(() {
+        _tokenMessage =
+            'FCM Web belum dikonfigurasi. Jalankan pengujian pada Android.';
+      });
+      return;
     }
 
-    if (token.length <= 12) {
-      return '$token...';
-    }
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
 
-    return '${token.substring(0, 12)}...';
+      if (!mounted) return;
+
+      setState(() {
+        _tokenMessage = token ?? 'Token not available';
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _tokenMessage = 'Gagal mengambil token: $e';
+      });
+    }
   }
 
   @override
@@ -48,9 +54,7 @@ class _DebugPageState extends State<DebugPage> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Center(
-          child: Text(
-            _displayToken(_token),
-          ),
+          child: SelectableText(_tokenMessage),
         ),
       ),
     );

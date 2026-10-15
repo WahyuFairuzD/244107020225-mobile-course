@@ -1,6 +1,13 @@
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../data/token_store.dart';
-import '../data/auth_repository.dart';
+import '../features/auth/data/repositories/auth_repository_provider.dart';
+import '../features/auth/domain/usecases/login.dart';
+
+final loginUseCaseProvider = Provider<Login>(
+  (ref) => Login(ref.watch(authRepositoryProvider)),
+);
 
 final authStateProvider =
     AsyncNotifierProvider<AuthNotifier, bool>(AuthNotifier.new);
@@ -14,13 +21,18 @@ class AuthNotifier extends AsyncNotifier<bool> {
 
   Future<void> login(String email, String password) async {
     state = const AsyncLoading();
+
     state = await AsyncValue.guard(() async {
-      final session = await ref
-          .read(authRepositoryProvider)
-          .login(email: email, password: password);
-      await ref
-          .read(tokenStoreProvider)
-          .save(access: session.access, refresh: session.refresh);
+      final session = await ref.read(loginUseCaseProvider).call(
+            email: email,
+            password: password,
+          );
+
+      await ref.read(tokenStoreProvider).save(
+            access: session.access,
+            refresh: session.refresh,
+          );
+
       return true;
     });
   }
