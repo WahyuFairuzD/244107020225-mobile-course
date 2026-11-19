@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'task.dart';
 import 'fake_task_repository.dart';
+import 'is_valid_task_title.dart';
 
 void main() {
   runApp(const MyApp());
@@ -67,23 +68,33 @@ class _TaskPageState extends State<TaskPage> {
             builder: (context) => AlertDialog(
               title: const Text('Add Task'),
               content: TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  hintText: 'Task title',
-                ),
-              ),
+  key: const Key('task-title-field'),
+  controller: controller,
+  decoration: const InputDecoration(
+    hintText: 'Task title',
+  ),
+),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: const Text('Cancel'),
                 ),
-                TextButton(
-                  onPressed: () {
-                    addTask(controller.text);
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Add'),
-                ),
+TextButton(
+  key: const Key('save-task-button'),
+onPressed: () {
+  if (isValidTaskTitle(controller.text)) {
+    addTask(controller.text);
+    Navigator.pop(context);
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Task title cannot be empty'),
+      ),
+    );
+  }
+},
+  child: const Text('Add'),
+),
               ],
             ),
           );

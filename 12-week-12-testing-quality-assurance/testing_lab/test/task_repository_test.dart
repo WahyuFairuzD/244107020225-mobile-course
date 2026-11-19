@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:testing_lab/task.dart';
 import 'package:testing_lab/fake_task_repository.dart';
@@ -35,6 +34,30 @@ void main() {
       final tasks = await repository.getTasks();
 
       expect(tasks.length, 2);
+    });
+
+    test('throws an error when loading tasks fails', () async {
+      repository.shouldFail = true;
+
+      await expectLater(
+        repository.getTasks(),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('throws an error when adding task fails', () async {
+      repository.shouldFail = true;
+
+      await expectLater(
+        repository.addTask(Task(title: 'Learn Flutter')),
+        throwsA(isA<Exception>()),
+      );
+
+      repository.shouldFail = false;
+
+      final tasks = await repository.getTasks();
+
+      expect(tasks, isEmpty);
     });
   });
 }
